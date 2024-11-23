@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gyroscope</title>
+    <style>
+      #ball {
+        width: 50px;
+        height: 50px;
+        background-color: red;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #report_box {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        background: #f0f0f0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: Arial, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ball"></div>
+    <div id="report_box">Waiting for permission...</div>
+
+    <script>
+      const ball = document.getElementById("ball");
+      const reportBox = document.getElementById("report_box");
+
+      if (
+        typeof DeviceMotionEvent !== "undefined" &&
+        typeof DeviceMotionEvent.requestPermission === "function"
+      ) {
+        // iOS: Request permission
+        DeviceMotionEvent.requestPermission()
+          .then((response) => {
+            if (response === "granted") {
+              startGyroscope();
+            } else {
+              reportBox.innerHTML =
+                "Permission denied. Cannot access gyroscope.";
+            }
+          })
+          .catch((error) => {
+            reportBox.innerHTML =
+              "Error requesting permission: " + error.message;
+          });
+      } else if ("Gyroscope" in window) {
+        // Android or other browsers: Start gyroscope directly
+        startGyroscope();
+      } else {
+        reportBox.innerHTML = "Gyroscope not supported on this device.";
+      }
+
+      function startGyroscope() {
+        if ("Gyroscope" in window) {
+          const sensor = new Gyroscope({ frequency: 60 });
+
+          sensor.start();
+          sensor.onreading = () => {
+            const x = sensor.x.toFixed(2);
+            const y = sensor.y.toFixed(2);
+            const z = sensor.z.toFixed(2);
+
+            // Update the ball's position and rotation
+            ball.style.left = 50 + x * 10 + "%";
+            ball.style.top = 50 - y * 10 + "%";
+            ball.style.transform = `rotate(${z * 10}deg)`;
+
+            reportBox.innerHTML = `
+              <strong>Gyroscope Data:</strong><br>
+              X axis: ${x}<br>
+              Y axis: ${y}<br>
+              Z axis: ${z}<br>
+            `;
+          };
+
+          sensor.onerror = (event) => {
+            console.error("Gyroscope error:", event.error);
+            reportBox.innerHTML =
+              "Error accessing gyroscope: " + event.error.message;
+          };
+        } else {
+          reportBox.innerHTML = "Gyroscope not supported on this device.";
+        }
+      }
+    </script>
+  </body>
+</html>
