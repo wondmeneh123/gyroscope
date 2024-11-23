@@ -54,7 +54,6 @@
               "Error requesting permission: " + error.message;
           });
       } else if ("Gyroscope" in window) {
-        // Android or other browsers: Start gyroscope directly
         startGyroscope();
       } else {
         reportBox.innerHTML = "Gyroscope not supported on this device.";
